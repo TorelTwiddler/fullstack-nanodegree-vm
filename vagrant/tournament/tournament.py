@@ -115,10 +115,12 @@ def reportMatch(winner, loser):
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
 
-    Assuming that there are an even number of players registered, each player
-    appears exactly once in the pairings.  Each player is paired with another
-    player with an equal or nearly-equal win record, that is, a player adjacent
-    to him or her in the standings.
+    Each player appears exactly once in the pairings.  Each player is paired with
+    another player with an equal or nearly-equal win record, that is, a player
+    adjacent to him or her in the standings.
+
+    For an odd number of players, one player that has the most number of matches
+    is left out of the pairings each round.
 
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
