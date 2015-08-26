@@ -4,6 +4,14 @@
 
 from tournament import *
 
+
+def test_with_cursor():
+    with with_cursor() as cursor:
+        assert not cursor.closed, "Cursor closed in with statement."
+    assert cursor.closed, "Cursor open after with statement."
+    print "0. Cursor connection works."
+
+
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
@@ -19,11 +27,7 @@ def testCount():
     deleteMatches()
     deletePlayers()
     c = countPlayers()
-    if c == '0':
-        raise TypeError(
-            "countPlayers() should return numeric zero, not string '0'.")
-    if c != 0:
-        raise ValueError("After deleting, countPlayers should return zero.")
+    assert c == 0, "countPlayers() should return numeric 0 not [{}]".format(c)
     print "3. After deleting, countPlayers() returns zero."
 
 
@@ -125,7 +129,43 @@ def testPairings():
     print "8. After one match, players with one win are paired."
 
 
+def testOddPairings():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Bruno Walton")
+    registerPlayer("Boots O'Neal")
+    registerPlayer("Cathy Burton")
+    registerPlayer("Diane Grant")
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+
+    # play one round
+    pairings = swissPairings()
+    for pairing in pairings:
+        reportMatch(pairing.id1, pairing.id2)
+
+    standings = playerStandings()
+    assert len(filter(lambda x: x.wins > 0, standings)) == 3, \
+        "3 players should have won."
+    assert len(filter(lambda x: x.matches == 0, standings)) == 1, \
+        "1 player should have sat out of the round."
+
+    # play another round
+    pairings = swissPairings()
+    for pairing in pairings:
+        reportMatch(pairing.id2, pairing.id1)
+
+    standings = playerStandings()
+    assert len(filter(lambda x: x.matches == 0, standings)) == 0, \
+        "Every player should have played at least one round."
+
+
+    print "9. Odd number of players works too!"
+
+
 if __name__ == '__main__':
+    test_with_cursor()
     testDeleteMatches()
     testDelete()
     testCount()
@@ -134,6 +174,7 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testOddPairings()
     print "Success!  All tests pass!"
 
 
