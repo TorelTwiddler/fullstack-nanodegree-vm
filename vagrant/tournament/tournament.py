@@ -86,20 +86,14 @@ def playerStandings():
         matches: the number of matches the player has played
     """
     with with_cursor() as cursor:
-        # Dear person reveiwing code: I would like to know if
-        # this select statement could be optimized. Is there
-        # a better way to do the counts or the join here?
-        cursor.execute("""SELECT
-    p.id,
-    p.username,
-    count(CASE WHEN p.id = m.winner THEN 1 END) as win_count,
-    count(CASE WHEN p.id = m.winner OR p.id = m.loser THEN 1 END) as match_count
+        cursor.execute("""
+SELECT
+    id,
+    username,
+    win_count,
+    match_count
 FROM
-    players p
-    LEFT JOIN matches m on p.id=m.winner OR p.id=m.loser
-GROUP BY
-    p.id,
-    p.username
+    standings
 ORDER BY
     win_count desc;
 """)
@@ -136,7 +130,7 @@ def swissPairings():
     standings = playerStandings()
 
     # If we have an odd number of players, remove one person
-    # that has the most number of matches (so one person doens't
+    # that has the most number of matches (so one person doesn't
     # keep getting left out).
     if len(standings) % 2 == 1:
         most_matches = max((x.matches for x in standings))
@@ -150,6 +144,8 @@ def swissPairings():
 
     pairings = []
     while standings:
+        # Pair the next two players. Sorting will handle players
+        # being close in win-count.
         player1 = standings.pop()
         player2 = standings.pop()
         pairings.append(Pairing(player1.id, player1.username,
